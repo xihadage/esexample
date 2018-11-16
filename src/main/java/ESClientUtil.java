@@ -25,6 +25,8 @@ import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
+import org.elasticsearch.search.sort.ScoreSortBuilder;
+import org.elasticsearch.search.sort.SortOrder;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
 import java.io.IOException;
@@ -145,7 +147,7 @@ public class ESClientUtil {
      * @param aggField
      * @return
      */
-    public static Map<String, Object> multiFiledQueryAndAggs(String[] fieldName, String[] fieldValue, String[] aggField) {
+    public static Map<String, Object> multiFiledQueryAndAggs(String[] fieldName, String[] fieldValue, String[] aggField,String sortStrs,boolean sortType) {
 
         Map<String, Object> allMap = new HashMap<>();
         try {
@@ -175,7 +177,13 @@ public class ESClientUtil {
             SearchResponse searchResponse;
             SearchRequestBuilder searchRequestBuilder = transportClient.prepareSearch(LOG_INDEX).setTypes(TYPE);
             if (termsAggregationBuilder0 == null) {
-                searchResponse = searchRequestBuilder.setQuery(boolQueryBuilder).execute().actionGet();
+                if (sortStrs==null){
+                    //不排序
+                    searchResponse = searchRequestBuilder.setQuery(boolQueryBuilder).execute().actionGet();
+                }else {
+                    //排序
+                    searchResponse = searchRequestBuilder.setQuery(boolQueryBuilder).addSort(sortStrs,sortType? SortOrder.ASC:SortOrder.DESC).execute().actionGet();
+                }
             } else {
                 searchResponse = searchRequestBuilder.setQuery(boolQueryBuilder).addAggregation(termsAggregationBuilder0).execute().actionGet();
             }
